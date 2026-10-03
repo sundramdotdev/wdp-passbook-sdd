@@ -2,19 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-// Placeholder imports for screens
-// Removed dashboard_screen.dart import
-import '../../features/passbook/passbook_screen.dart';
-import '../../features/merchants/merchants_screen.dart';
-import '../../features/udhar/udhar_screen.dart';
+import '../../features/personal/accounts/accounts_screen.dart';
+import '../../features/personal/analytics/analytics_screen.dart';
+import '../../features/personal/budgets/budgets_screen.dart';
+import '../../features/personal/goals/savings_goals_screen.dart';
+import '../../features/personal/home/home_screen.dart';
+import '../../features/personal/ledger/ledger_screen.dart';
+import '../../features/personal/settings/settings_screen.dart';
 import '../../features/splash/splash_screen.dart';
-import '../../features/budget/budget_screen.dart';
-import '../../features/budget/budget_screen.dart';
-import '../../features/analytics/analytics_screen.dart';
-import '../../features/more/more_screen.dart';
-import '../../features/qr_scanner/qr_scanner_screen.dart';
-import '../../features/settings/settings_screen.dart';
-import '../../features/add_transaction/upi_payment_flow.dart';
 import '../widgets/scaffold_with_nav_bar.dart';
 
 part 'app_router.g.dart';
@@ -26,25 +21,11 @@ final _shellNavigatorKey = GlobalKey<NavigatorState>();
 GoRouter appRouter(AppRouterRef ref) {
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: '/splash',
+    initialLocation: '/passbook',
     routes: [
       GoRoute(
         path: '/splash',
         builder: (context, state) => const SplashScreen(),
-      ),
-      GoRoute(
-        path: '/qr_scanner',
-        builder: (context, state) => const QrScannerScreen(),
-      ),
-      GoRoute(
-        path: '/upi_payment',
-        builder: (context, state) {
-          final extra = state.extra as Map<String, String>? ?? {};
-          return UpiPaymentFlow(
-            upiId: extra['upiId'] ?? '',
-            merchantName: extra['merchantName'] ?? 'Unknown',
-          );
-        },
       ),
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
@@ -54,19 +35,23 @@ GoRouter appRouter(AppRouterRef ref) {
         routes: [
           GoRoute(
             path: '/passbook',
-            builder: (context, state) => const PassbookScreen(),
+            builder: (context, state) => const HomeScreen(),
           ),
           GoRoute(
-            path: '/merchants',
-            builder: (context, state) => const MerchantsScreen(),
+            path: '/ledger',
+            builder: (context, state) => const LedgerScreen(),
           ),
           GoRoute(
-            path: '/udhar',
-            builder: (context, state) => const UdharScreen(),
+            path: '/accounts',
+            builder: (context, state) => const AccountsScreen(),
           ),
           GoRoute(
             path: '/budget',
-            builder: (context, state) => const BudgetScreen(),
+            builder: (context, state) => const BudgetsScreen(),
+          ),
+          GoRoute(
+            path: '/goals',
+            builder: (context, state) => const SavingsGoalsScreen(),
           ),
           GoRoute(
             path: '/analytics',
@@ -75,10 +60,6 @@ GoRouter appRouter(AppRouterRef ref) {
           GoRoute(
             path: '/settings',
             builder: (context, state) => const SettingsScreen(),
-          ),
-          GoRoute(
-            path: '/more',
-            builder: (context, state) => const MoreScreen(),
           ),
         ],
       ),

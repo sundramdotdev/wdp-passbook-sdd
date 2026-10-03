@@ -90,7 +90,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
       final dir = await getApplicationDocumentsDirectory();
       final backupPath = '${dir.path}/wdp_passbook_backup.wdpbak';
-      final backupFile = File(backupPath);
       
       // Simply copy the Isar DB file. In production you'd use isar.copyToFile
       await isar.copyToFile(backupPath);
@@ -115,7 +114,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
       if (result != null) {
         setState(() => _isLoading = true);
-        final file = File(result.files.single.path!);
         
         // This is a simplified restore. For Isar, you usually need to close the DB, replace the file, and reopen.
         if (mounted) {

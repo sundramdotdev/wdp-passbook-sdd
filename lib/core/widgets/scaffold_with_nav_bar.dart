@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../constants/app_colors.dart';
-import '../../features/add_transaction/add_expense_sheet.dart';
-import '../../features/add_transaction/add_income_sheet.dart';
-import '../../features/add_transaction/add_udhar_sheet.dart';
+import '../../features/personal/transactions/add_transaction_sheet.dart';
 
 class ScaffoldWithNavBar extends StatelessWidget {
   final Widget child;
@@ -21,10 +19,10 @@ class ScaffoldWithNavBar extends StatelessWidget {
       body: child,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: isDark ? AppColors.darkCard : AppColors.lightCard,
+          color: isDark ? AppColors.navyElevated : AppColors.lightSurface,
           border: Border(
             top: BorderSide(
-              color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+              color: isDark ? AppColors.navyBorder : AppColors.lightBorder,
               width: 1,
             ),
           ),
@@ -38,7 +36,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
             backgroundColor: Colors.transparent,
             type: BottomNavigationBarType.fixed,
             elevation: 0,
-            selectedItemColor: AppColors.primary,
+            selectedItemColor: AppColors.brandOrange,
             unselectedItemColor: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
             selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
             unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
@@ -46,44 +44,40 @@ class ScaffoldWithNavBar extends StatelessWidget {
             onTap: (int idx) => _onItemTapped(idx, context),
             items: [
               const BottomNavigationBarItem(
-                icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.account_balance_wallet_outlined, size: 24)),
-                activeIcon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.account_balance_wallet, size: 24)),
-                label: 'Passbook',
+                icon: Icon(Icons.home_outlined, size: 22),
+                label: 'Home',
               ),
               const BottomNavigationBarItem(
-                icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.storefront_outlined, size: 24)),
-                activeIcon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.storefront, size: 24)),
-                label: 'Merchants',
+                icon: Icon(Icons.menu_book_outlined, size: 22),
+                label: 'Ledger',
               ),
               BottomNavigationBarItem(
                 icon: Container(
-                  width: 48,
-                  height: 48,
-                  margin: const EdgeInsets.only(top: 4),
+                  width: 44,
+                  height: 44,
+                  margin: const EdgeInsets.only(top: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.primary,
+                    color: AppColors.brandOrange,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.4),
-                        blurRadius: 12,
+                        color: AppColors.brandOrange.withOpacity(0.4),
+                        blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.add, color: Colors.white, size: 28),
+                  child: const Icon(Icons.add, color: Colors.white, size: 24),
                 ),
                 label: '',
               ),
               const BottomNavigationBarItem(
-                icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.handshake_outlined, size: 24)),
-                activeIcon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.handshake, size: 24)),
-                label: 'Udhar',
+                icon: Icon(Icons.pie_chart_outline, size: 22),
+                label: 'Analytics',
               ),
               const BottomNavigationBarItem(
-                icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.more_horiz, size: 24)),
-                activeIcon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.more_horiz, size: 24, color: AppColors.primary)),
-                label: 'More',
+                icon: Icon(Icons.settings_outlined, size: 22),
+                label: 'Settings',
               ),
             ],
           ),
@@ -92,88 +86,12 @@ class ScaffoldWithNavBar extends StatelessWidget {
     );
   }
 
-  void _showAddOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.divider,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 12),
-              ListTile(
-                leading: const Icon(Icons.money_off, color: AppColors.expense),
-                title: const Text('Add Expense'),
-                onTap: () {
-                  Navigator.pop(context);
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (_) => const AddExpenseSheet(),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.attach_money, color: AppColors.income),
-                title: const Text('Add Income'),
-                onTap: () {
-                  Navigator.pop(context);
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (_) => const AddIncomeSheet(),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.handshake, color: AppColors.udhar),
-                title: const Text('Add Udhar Entry'),
-                onTap: () {
-                  Navigator.pop(context);
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (_) => const AddUdharSheet(),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.qr_code_scanner, color: AppColors.info),
-                title: const Text('Scan QR Code'),
-                onTap: () {
-                  Navigator.pop(context);
-                  context.push('/qr_scanner').then((code) {
-                    if (code != null) {
-                      // Handle the scanned code
-                      print('Scanned code: $code');
-                    }
-                  });
-                },
-              ),
-              const SizedBox(height: 12),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   static int _calculateSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).uri.path;
     if (location.startsWith('/passbook')) return 0;
-    if (location.startsWith('/merchants')) return 1;
-    if (location.startsWith('/udhar')) return 3;
-    if (location.startsWith('/more')) return 4;
+    if (location.startsWith('/ledger')) return 1;
+    if (location.startsWith('/analytics')) return 3;
+    if (location.startsWith('/settings')) return 4;
     return 0;
   }
 
@@ -183,16 +101,20 @@ class ScaffoldWithNavBar extends StatelessWidget {
         context.go('/passbook');
         break;
       case 1:
-        context.go('/merchants');
+        context.go('/ledger');
         break;
       case 2:
-        _showAddOptions(context);
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (_) => const AddTransactionSheet(),
+        );
         break;
       case 3:
-        context.go('/udhar');
+        context.go('/analytics');
         break;
       case 4:
-        context.go('/more');
+        context.go('/settings');
         break;
     }
   }
