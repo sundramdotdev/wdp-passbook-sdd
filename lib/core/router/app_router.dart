@@ -10,6 +10,8 @@ import '../../features/personal/home/home_screen.dart';
 import '../../features/personal/ledger/ledger_screen.dart';
 import '../../features/personal/settings/settings_screen.dart';
 import '../../features/splash/splash_screen.dart';
+import '../../features/personal/categories/categories_screen.dart';
+import '../../features/personal/transactions/transaction_details_screen.dart';
 import '../widgets/scaffold_with_nav_bar.dart';
 
 part 'app_router.g.dart';
@@ -24,8 +26,20 @@ GoRouter appRouter(AppRouterRef ref) {
     initialLocation: '/passbook',
     routes: [
       GoRoute(
+        path: '/personal',
+        redirect: (context, state) => '/passbook',
+      ),
+      GoRoute(
         path: '/splash',
         builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/transactions/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return TransactionDetailsScreen(transactionId: id);
+        },
       ),
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
@@ -44,6 +58,10 @@ GoRouter appRouter(AppRouterRef ref) {
           GoRoute(
             path: '/accounts',
             builder: (context, state) => const AccountsScreen(),
+          ),
+          GoRoute(
+            path: '/categories',
+            builder: (context, state) => const CategoriesScreen(),
           ),
           GoRoute(
             path: '/budget',

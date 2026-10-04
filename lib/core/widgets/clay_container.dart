@@ -78,7 +78,11 @@ class ClayContainer extends StatelessWidget {
           width: 1.0,
         ),
       ),
-      child: child,
+      child: Material(
+        type: MaterialType.transparency,
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: child,
+      ),
     );
   }
 }

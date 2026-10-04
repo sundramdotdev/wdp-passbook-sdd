@@ -48,14 +48,12 @@ class CalculatorState {
 
 /// Controller managing calculation input and interactions outside widgets.
 class CalculatorController extends ChangeNotifier {
-  final CalculatorEngine _engine;
   CalculatorState _state;
 
   CalculatorController({
-    CalculatorEngine engine = const CalculatorEngine(),
+    CalculatorEngine? engine,
     double? initialAmount,
-  })  : _engine = engine,
-        _state = CalculatorState.initial(initialAmount);
+  }) : _state = CalculatorState.initial(initialAmount);
 
   CalculatorState get state => _state;
 

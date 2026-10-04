@@ -113,9 +113,8 @@ class FakeTransactionRepository implements TransactionRepository {
   Stream<List<Transaction>> watchTransactions({
     String? accountId,
     TransactionType? type,
-  }) {
-    // Return a stream seeded with current list
-    return _streamController.stream.map((list) {
+  }) async* {
+    List<Transaction> applyFilter(List<Transaction> list) {
       var filtered = list;
       if (accountId != null && accountId.isNotEmpty) {
         filtered = filtered.where((t) => t.accountId == accountId || t.targetAccountId == accountId).toList();
@@ -124,7 +123,11 @@ class FakeTransactionRepository implements TransactionRepository {
         filtered = filtered.where((t) => t.type == type).toList();
       }
       return filtered;
-    });
+    }
+
+    final current = transactions.values.toList()..sort((a, b) => b.date.compareTo(a.date));
+    yield applyFilter(current);
+    yield* _streamController.stream.map(applyFilter);
   }
 
   @override
@@ -220,10 +223,13 @@ class FakeAccountRepository implements AccountRepository {
   }
 
   @override
-  Stream<List<Account>> watchAccounts({bool includeArchived = false}) {
-    return _streamController.stream.map((list) {
+  Stream<List<Account>> watchAccounts({bool includeArchived = false}) async* {
+    List<Account> applyFilter(List<Account> list) {
       return list.where((a) => includeArchived || !a.isArchived).toList();
-    });
+    }
+
+    yield applyFilter(accounts.values.toList());
+    yield* _streamController.stream.map(applyFilter);
   }
 
   @override
@@ -300,14 +306,17 @@ class FakeCategoryRepository implements CategoryRepository {
   Stream<List<Category>> watchCategories({
     CategoryType? type,
     bool includeArchived = false,
-  }) {
-    return _streamController.stream.map((list) {
+  }) async* {
+    List<Category> applyFilter(List<Category> list) {
       var filtered = list.where((c) => includeArchived || !c.isArchived);
       if (type != null) {
         filtered = filtered.where((c) => c.type == type);
       }
       return filtered.toList();
-    });
+    }
+
+    yield applyFilter(categories.values.toList());
+    yield* _streamController.stream.map(applyFilter);
   }
 
   @override
@@ -366,8 +375,9 @@ class FakeBudgetRepository implements BudgetRepository {
   }
 
   @override
-  Stream<List<Budget>> watchBudgets() {
-    return _streamController.stream;
+  Stream<List<Budget>> watchBudgets() async* {
+    yield budgets.values.toList();
+    yield* _streamController.stream;
   }
 }
 
@@ -483,12 +493,15 @@ class FakeGoalRepository implements GoalRepository {
   }
 
   @override
-  Stream<List<SavingsGoal>> watchGoals({bool includeArchived = false}) {
-    return _streamController.stream.map((list) {
+  Stream<List<SavingsGoal>> watchGoals({bool includeArchived = false}) async* {
+    List<SavingsGoal> applyFilter(List<SavingsGoal> list) {
       return list
           .where((g) => includeArchived || g.status != GoalStatus.archived)
           .toList();
-    });
+    }
+
+    yield applyFilter(goals.values.toList());
+    yield* _streamController.stream.map(applyFilter);
   }
 }
 

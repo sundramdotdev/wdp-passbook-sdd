@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
+import '../../../application/commands/account_commands.dart';
 import '../../../application/providers/repository_providers.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radii.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_typography.dart';
 import '../../../core/widgets/clay_container.dart';
-import '../../../domain/entities/account.dart';
 import '../../../domain/entities/money.dart';
 import '../../../domain/enums/personal_enums.dart';
 
@@ -94,17 +93,19 @@ class AccountsScreen extends ConsumerWidget {
                           final name = nameController.text.trim();
                           final balVal = double.tryParse(balanceController.text.trim()) ?? 0.0;
                           if (name.isNotEmpty) {
-                            final acc = Account(
-                              id: const Uuid().v4(),
+                            final cmd = CreateAccountCommand(
                               name: name,
                               type: selectedType,
-                              balance: Money.fromMajor(balVal),
+                              initialBalance: Money.fromMajor(balVal),
                               iconName: selectedType == AccountType.cash ? 'coins' : 'landmark',
                               colorHex: '#F97316',
-                              createdAt: DateTime.now(),
                             );
-                            await ref.read(accountRepositoryProvider).createAccount(acc);
-                            if (context.mounted) Navigator.pop(context);
+                            final success = await ref
+                                .read(accountControllerProvider.notifier)
+                                .createAccount(cmd);
+                            if (success && context.mounted) {
+                              Navigator.pop(context);
+                            }
                           }
                         },
                         child: const Text('Save Account', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -149,7 +150,45 @@ class AccountsScreen extends ConsumerWidget {
           data: (accounts) {
             if (accounts.isEmpty) {
               return Center(
-                child: Text('No accounts registered.', style: AppTypography.bodyMedium),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.account_balance_wallet_outlined,
+                        size: 64,
+                        color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No Accounts Yet',
+                        style: AppTypography.headlineSmall.copyWith(
+                          color: isDark ? AppColors.darkText : AppColors.lightText,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Add bank accounts, credit cards, or cash wallets to begin tracking balances.',
+                        textAlign: TextAlign.center,
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.brandOrange,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: AppRadii.controlRadius),
+                        ),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add Account'),
+                        onPressed: () => _showAddAccountSheet(context, ref),
+                      ),
+                    ],
+                  ),
+                ),
               );
             }
 
@@ -192,6 +231,49 @@ class AccountsScreen extends ConsumerWidget {
                         style: AppTypography.amountMedium.copyWith(
                           color: isDark ? AppColors.darkText : AppColors.lightText,
                         ),
+                      ),
+                      PopupMenuButton<String>(
+                        icon: Icon(
+                          Icons.more_vert,
+                          color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                        ),
+                        onSelected: (val) {
+                          if (val == 'archive') {
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: const Text('Archive Account?'),
+                                content: Text('Are you sure you want to archive "${acc.name}"?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    style: TextButton.styleFrom(foregroundColor: AppColors.expense),
+                                    onPressed: () {
+                                      Navigator.pop(ctx);
+                                      ref.read(accountControllerProvider.notifier).archiveAccount(acc.id);
+                                    },
+                                    child: const Text('Archive'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'archive',
+                            child: Row(
+                              children: [
+                                Icon(Icons.archive_outlined, size: 20, color: AppColors.expense),
+                                SizedBox(width: 8),
+                                Text('Archive', style: TextStyle(color: AppColors.expense)),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

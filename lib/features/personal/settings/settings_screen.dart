@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radii.dart';
 import '../../../core/constants/app_spacing.dart';
@@ -32,6 +33,34 @@ class SettingsScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text('Personal Finance Management', style: AppTypography.labelMedium.copyWith(color: AppColors.brandOrange)),
+              const SizedBox(height: 8),
+              ClayContainer(
+                borderRadius: AppRadii.card,
+                padding: EdgeInsets.zero,
+                customBackgroundColor: isDark ? AppColors.navyElevated : AppColors.lightSurface,
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.account_balance_wallet_outlined),
+                      title: const Text('Manage Accounts'),
+                      subtitle: const Text('Bank accounts, cash, and digital wallets'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push('/accounts'),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.category_outlined),
+                      title: const Text('Manage Categories'),
+                      subtitle: const Text('Custom expense and income categories'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push('/categories'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+
               Text('Preferences', style: AppTypography.labelMedium.copyWith(color: AppColors.brandOrange)),
               const SizedBox(height: 8),
               ClayContainer(

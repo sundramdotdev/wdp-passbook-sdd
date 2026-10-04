@@ -9,21 +9,30 @@ import '../../../core/constants/app_typography.dart';
 import '../../../domain/entities/category.dart';
 import '../../../domain/enums/personal_enums.dart';
 
-/// Modal bottom sheet for creating a validated custom category.
+/// Modal bottom sheet for creating or editing a validated custom category.
 class AddCategorySheet extends ConsumerStatefulWidget {
   final CategoryType initialType;
+  final Category? categoryToEdit;
 
   const AddCategorySheet({
     super.key,
     this.initialType = CategoryType.expense,
+    this.categoryToEdit,
   });
 
-  static Future<Category?> show(BuildContext context, {CategoryType initialType = CategoryType.expense}) {
+  static Future<Category?> show(
+    BuildContext context, {
+    CategoryType initialType = CategoryType.expense,
+    Category? categoryToEdit,
+  }) {
     return showModalBottomSheet<Category>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => AddCategorySheet(initialType: initialType),
+      builder: (ctx) => AddCategorySheet(
+        initialType: initialType,
+        categoryToEdit: categoryToEdit,
+      ),
     );
   }
 
@@ -70,7 +79,15 @@ class _AddCategorySheetState extends ConsumerState<AddCategorySheet> {
   @override
   void initState() {
     super.initState();
-    _type = widget.initialType;
+    final edit = widget.categoryToEdit;
+    if (edit != null) {
+      _nameController.text = edit.name;
+      _type = edit.type;
+      _selectedIcon = edit.iconName;
+      _selectedColorHex = edit.colorHex;
+    } else {
+      _type = widget.initialType;
+    }
   }
 
   @override
@@ -95,15 +112,27 @@ class _AddCategorySheetState extends ConsumerState<AddCategorySheet> {
 
     setState(() => _errorMessage = null);
 
-    final command = CreateCategoryCommand(
-      name: name,
-      type: _type,
-      iconName: _selectedIcon,
-      colorHex: _selectedColorHex,
-    );
-
     final controller = ref.read(categoryControllerProvider.notifier);
-    await controller.createCategory(command);
+    final edit = widget.categoryToEdit;
+
+    if (edit != null) {
+      final command = UpdateCategoryCommand(
+        id: edit.id,
+        name: name,
+        type: _type,
+        iconName: _selectedIcon,
+        colorHex: _selectedColorHex,
+      );
+      await controller.updateCategory(command);
+    } else {
+      final command = CreateCategoryCommand(
+        name: name,
+        type: _type,
+        iconName: _selectedIcon,
+        colorHex: _selectedColorHex,
+      );
+      await controller.createCategory(command);
+    }
 
     if (mounted) {
       final state = ref.read(categoryControllerProvider);
@@ -151,7 +180,7 @@ class _AddCategorySheetState extends ConsumerState<AddCategorySheet> {
               ),
               const SizedBox(height: 16),
               Text(
-                'New Custom Category',
+                widget.categoryToEdit != null ? 'Edit Category' : 'New Custom Category',
                 style: AppTypography.headlineSmall.copyWith(
                   color: isDark ? AppColors.darkText : AppColors.lightText,
                 ),

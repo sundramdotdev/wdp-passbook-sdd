@@ -227,3 +227,14 @@ final analyticsSummaryProvider = FutureProvider<AnalyticsSummary>((ref) async {
   return res.fold((summary) => summary, (failure) => AnalyticsSummary.empty());
 });
 
+/// Single transaction family provider by ID.
+final transactionByIdProvider = Provider.family<Transaction?, String>((ref, id) {
+  final txnsAsync = ref.watch(transactionsStreamProvider);
+  final list = txnsAsync.valueOrNull ?? [];
+  for (final t in list) {
+    if (t.id == id) return t;
+  }
+  return null;
+});
+
+

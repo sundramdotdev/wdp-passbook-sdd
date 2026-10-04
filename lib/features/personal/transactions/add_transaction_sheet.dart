@@ -14,7 +14,21 @@ import '../../../domain/enums/personal_enums.dart';
 import '../categories/add_category_sheet.dart';
 
 class AddTransactionSheet extends ConsumerStatefulWidget {
-  const AddTransactionSheet({super.key});
+  final int initialTabIndex;
+
+  const AddTransactionSheet({
+    super.key,
+    this.initialTabIndex = 0,
+  });
+
+  static Future<void> show(BuildContext context, {int initialTabIndex = 0}) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => AddTransactionSheet(initialTabIndex: initialTabIndex),
+    );
+  }
 
   @override
   ConsumerState<AddTransactionSheet> createState() => _AddTransactionSheetState();
@@ -41,7 +55,11 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> with 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(
+      length: 3,
+      vsync: this,
+      initialIndex: widget.initialTabIndex.clamp(0, 2),
+    );
     _tabController.addListener(_onTabChanged);
     _calcController = CalculatorController();
     _calcController.addListener(_onCalculatorChanged);

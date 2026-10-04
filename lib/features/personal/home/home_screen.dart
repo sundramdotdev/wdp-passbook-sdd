@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../application/providers/reactive_providers.dart';
 import '../../../application/providers/repository_providers.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radii.dart';
@@ -149,19 +150,73 @@ class HomeScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xl),
+                // Quick Action Buttons: + Expense & + Income
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        key: const Key('home_quick_add_expense_btn'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.expense,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: AppRadii.controlRadius),
+                          elevation: 0,
+                        ),
+                        icon: const Icon(Icons.arrow_upward, size: 18),
+                        label: Text(
+                          '+ Expense',
+                          style: AppTypography.labelMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
+                        ),
+                        onPressed: () {
+                          AddTransactionSheet.show(context, initialTabIndex: 0);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        key: const Key('home_quick_add_income_btn'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.income,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: AppRadii.controlRadius),
+                          elevation: 0,
+                        ),
+                        icon: const Icon(Icons.arrow_downward, size: 18),
+                        label: Text(
+                          '+ Income',
+                          style: AppTypography.labelMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
+                        ),
+                        onPressed: () {
+                          AddTransactionSheet.show(context, initialTabIndex: 1);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.lg),
 
                 // Quick Navigation Shortcuts
                 Row(
                   children: [
                     Expanded(
                       child: _ShortcutButton(
-                        icon: Icons.pie_chart_outline,
-                        label: 'Analytics',
-                        onTap: () => context.push('/analytics'),
+                        icon: Icons.account_balance_wallet_outlined,
+                        label: 'Accounts',
+                        onTap: () => context.push('/accounts'),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _ShortcutButton(
+                        icon: Icons.category_outlined,
+                        label: 'Categories',
+                        onTap: () => context.push('/categories'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: _ShortcutButton(
                         icon: Icons.track_changes,
@@ -169,7 +224,7 @@ class HomeScreen extends ConsumerWidget {
                         onTap: () => context.push('/budget'),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: _ShortcutButton(
                         icon: Icons.savings_outlined,
@@ -179,6 +234,14 @@ class HomeScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
+                const SizedBox(height: AppSpacing.xl),
+
+                // Active Budgets Summary
+                _HomeBudgetsSection(),
+                const SizedBox(height: AppSpacing.lg),
+
+                // Active Savings Goals Summary
+                _HomeGoalsSection(),
                 const SizedBox(height: AppSpacing.xl),
 
                 // Recent Ledger Activity
@@ -345,6 +408,185 @@ class _ShortcutButton extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _HomeBudgetsSection extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final budgetsAsync = ref.watch(calculatedBudgetsStreamProvider);
+
+    return budgetsAsync.when(
+      data: (budgets) {
+        if (budgets.isEmpty) return const SizedBox.shrink();
+        final topBudgets = budgets.take(2).toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Budgets',
+                  style: AppTypography.headlineSmall.copyWith(
+                    color: isDark ? AppColors.darkText : AppColors.lightText,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => context.push('/budget'),
+                  child: Text(
+                    'See All',
+                    style: AppTypography.labelMedium.copyWith(color: AppColors.brandOrange),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ...topBudgets.map((b) {
+              final pct = b.progress;
+              final isOver = b.isExceeded;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: ClayContainer(
+                  borderRadius: AppRadii.card,
+                  padding: const EdgeInsets.all(14),
+                  customBackgroundColor: isDark ? AppColors.navyElevated : AppColors.lightSurface,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            b.categoryName,
+                            style: AppTypography.bodyMedium.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? AppColors.darkText : AppColors.lightText,
+                            ),
+                          ),
+                          Text(
+                            '${b.spentAmount.format()} / ${b.limitAmount.format()}',
+                            style: AppTypography.caption.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: isOver
+                                  ? AppColors.expense
+                                  : (isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: AppRadii.pillRadius,
+                        child: LinearProgressIndicator(
+                          value: pct.clamp(0.0, 1.0),
+                          backgroundColor: isDark ? AppColors.navyBorder : Colors.grey.shade200,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            isOver ? AppColors.expense : AppColors.brandOrange,
+                          ),
+                          minHeight: 6,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+}
+
+class _HomeGoalsSection extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final goalsAsync = ref.watch(goalsStreamProvider);
+
+    return goalsAsync.when(
+      data: (goals) {
+        if (goals.isEmpty) return const SizedBox.shrink();
+        final topGoals = goals.take(2).toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Savings Goals',
+                  style: AppTypography.headlineSmall.copyWith(
+                    color: isDark ? AppColors.darkText : AppColors.lightText,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => context.push('/goals'),
+                  child: Text(
+                    'See All',
+                    style: AppTypography.labelMedium.copyWith(color: AppColors.brandOrange),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ...topGoals.map((g) {
+              final pct = g.progressPercentage;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: ClayContainer(
+                  borderRadius: AppRadii.card,
+                  padding: const EdgeInsets.all(14),
+                  customBackgroundColor: isDark ? AppColors.navyElevated : AppColors.lightSurface,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            g.name,
+                            style: AppTypography.bodyMedium.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? AppColors.darkText : AppColors.lightText,
+                            ),
+                          ),
+                          Text(
+                            '${g.currentAmount.format()} / ${g.targetAmount.format()}',
+                            style: AppTypography.caption.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: AppRadii.pillRadius,
+                        child: LinearProgressIndicator(
+                          value: pct.clamp(0.0, 1.0),
+                          backgroundColor: isDark ? AppColors.navyBorder : Colors.grey.shade200,
+                          valueColor: const AlwaysStoppedAnimation<Color>(AppColors.income),
+                          minHeight: 6,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }
